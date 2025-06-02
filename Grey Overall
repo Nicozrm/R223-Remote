@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R223 Remote Terminal</title>
+  <link rel="icon" href="icon.png" />
+  <style>
+    body {
+      background: #1c1c1c;
+      font-family: monospace;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .terminal {
+      background: #2a2a2a;
+      width: 95%;
+      max-width: 800px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      color: #00ff88;
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.2rem;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #3a3a3a;
+      color: #00ff88;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    .button {
+      background: #3a3a3a;
+      border: 1px solid #555;
+      color: #00ff88;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .button:hover {
+      background: #00ff88;
+      color: #000;
+    }
+
+    #output {
+      background: #111;
+      color: #0f0;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <h1>R223 Terminal Interface</h1>
+
+    <label for="nve">📦 NVE</label>
+    <input type="text" id="nve" placeholder="34019..." />
+
+    <label for="charge">🧪 Charge</label>
+    <input type="text" id="charge" placeholder="z. B. WES0035..." />
+
+    <label for="ursprung">🌍 Ursprung</label>
+    <select id="ursprung">
+      <option>Retoure</option>
+      <option>Überhang</option>
+      <option>Sperrung QS</option>
+    </select>
+
+    <label for="grund">🧯 Grund</label>
+    <select id="grund">
+      <option>Fehletikettierung</option>
+      <option>Falscher Rohstoff</option>
+      <option>Falsche Chargendaten</option>
+      <option>Produktabweichung</option>
+      <option>Sonstiges</option>
+    </select>
+
+    <div id="zusatzfeld" class="hidden">
+      <label for="sonstiges">📝 Zusatz bei "Sonstiges"</label>
+      <textarea id="sonstiges" placeholder="Details eingeben ..."></textarea>
+    </div>
+
+    <label for="verwendung">🎯 Verwendungszweck</label>
+    <select id="verwendung">
+      <option>Burgerrohstoff</option>
+      <option>RI-Zubereitung</option>
+      <option>Essenzzubereitung</option>
+      <option>Sonstiges</option>
+      <option>1 zu 1</option>
+    </select>
+
+    <div class="button" onclick="sendeEintrag()">✅ Eintrag bestätigen</div>
+    <div class="button" onclick="generatePDF()">📄 PDF erzeugen</div>
+
+    <div id="output">Bereit für Eingaben ...</div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const output = document.getElementById("output");
+    const grundSelect = document.getElementById("grund");
+    const zusatzfeld = document.getElementById("zusatzfeld");
+
+    grundSelect.addEventListener("change", () => {
+      zusatzfeld.classList.toggle("hidden", grundSelect.value !== "Sonstiges");
+    });
+
+    function sendeEintrag() {
+      const nve = document.getElementById("nve").value.trim();
+      const charge = document.getElementById("charge").value.trim();
+      const ursprung = document.getElementById("ursprung").value;
+      const grund = document.getElementById("grund").value;
+      const verwendung = document.getElementById("verwendung").value;
+      const sonst = document.getElementById("sonstiges").value.trim();
+
+      let eintrag = `[${new Date().toLocaleTimeString()}] NVE: ${nve}\nCharge: ${charge}\nUrsprung: ${ursprung}\nGrund: ${grund}`;
+      if (grund === "Sonstiges") eintrag += `\nZusatz: ${sonst}`;
+      eintrag += `\nVerwendung: ${verwendung}\n---`;
+
+      output.textContent += `\n${eintrag}`;
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont('Courier');
+      doc.setFontSize(11);
+      doc.text("📄 R223-Terminal Einträge:\n\n" + output.textContent, 10, 20);
+      doc.save("r223_terminal_eintrag.pdf");
+    }
+  </script>
+</body>
+</html>
