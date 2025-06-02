@@ -1,110 +1,98 @@
-<link rel="manifest" href="manifest.json" />
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>R223 Remote Terminal</title>
+  <title>R223 Label Tool</title>
+  <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
   <style>
     body {
       background: #1c1c1c;
       font-family: monospace;
       color: #e0e0e0;
+      margin: 0;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
     }
-
     .terminal {
+      width: 100%;
+      max-width: 700px;
       background: #2a2a2a;
-      width: 95%;
-      max-width: 800px;
       padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
     }
-
     h1 {
-      color: #00ff88;
-      font-size: 2rem;
       text-align: center;
-      margin-bottom: 1.5rem;
+      color: #00ff88;
     }
-
-    label {
-      display: block;
-      margin: 1rem 0 0.2rem;
-      font-weight: bold;
-      color: #aaa;
-    }
-
     input, select, textarea {
       width: 100%;
-      padding: 0.7rem;
-      margin-bottom: 1rem;
+      padding: 0.6rem;
+      margin: 0.5rem 0 1rem;
       border: none;
       border-radius: 6px;
       background: #3a3a3a;
       color: #00ff88;
-      font-family: monospace;
       font-size: 1rem;
     }
-
-    .button {
-      background: #3a3a3a;
-      border: 1px solid #555;
-      color: #00ff88;
-      padding: 1rem;
-      margin: 0.5rem 0;
-      border-radius: 6px;
-      cursor: pointer;
-      text-align: center;
-      font-size: 1.1rem;
-    }
-
-    .button:hover {
+    button {
       background: #00ff88;
-      color: #000;
+      color: #111;
+      padding: 1rem;
+      width: 100%;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
     }
-
+    #zusatzfeld { display: none; }
     #output {
       background: #111;
       color: #0f0;
       padding: 1rem;
-      margin-top: 2rem;
       border-radius: 6px;
-      font-size: 0.95rem;
       white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
+      margin-top: 1rem;
     }
-
-    .hidden {
+    #scanner {
       display: none;
+      width: 100%;
+      height: 250px;
+      background: black;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="terminal">
-    <h1>R223 Terminal Interface</h1>
+    <h1>R223 Label Terminal</h1>
 
-    <label for="nve">📦 NVE</label>
+    <video id="scanner"></video>
+    <button onclick="startScanner()">📷 NVE per Kamera scannen</button>
+
+    <label>NVE</label>
     <input type="text" id="nve" placeholder="34019..." />
 
-    <label for="charge">🧪 Charge</label>
-    <input type="text" id="charge" placeholder="z. B. WES0035..." />
+    <label>Charge</label>
+    <input type="text" id="charge" placeholder="WES..." />
 
-    <label for="ursprung">🌍 Ursprung</label>
+    <label>Ursprung</label>
     <select id="ursprung">
       <option>Retoure</option>
       <option>Überhang</option>
       <option>Sperrung QS</option>
     </select>
 
-    <label for="grund">🧯 Grund</label>
-    <select id="grund">
+    <label>Grund</label>
+    <select id="grund" onchange="toggleZusatz(this.value)">
       <option>Fehletikettierung</option>
       <option>Falscher Rohstoff</option>
       <option>Falsche Chargendaten</option>
@@ -112,58 +100,88 @@
       <option>Sonstiges</option>
     </select>
 
-    <div id="zusatzfeld" class="hidden">
-      <label for="sonstiges">📝 Zusatz bei "Sonstiges"</label>
-      <textarea id="sonstiges" placeholder="Details eingeben ..."></textarea>
+    <div id="zusatzfeld">
+      <label>Zusatz bei Sonstiges</label>
+      <textarea id="sonstiges" placeholder="Zusatztext …"></textarea>
     </div>
 
-    <label for="verwendung">🎯 Verwendungszweck</label>
+    <label>Verwendungszweck</label>
     <select id="verwendung">
       <option>Burgerrohstoff</option>
       <option>RI-Zubereitung</option>
       <option>Essenzzubereitung</option>
-      <option>Sonstiges</option>
       <option>1 zu 1</option>
+      <option>Sonstiges</option>
     </select>
 
-    <div class="button" onclick="sendeEintrag()">✅ Eintrag bestätigen</div>
-    <div class="button" onclick="generatePDF()">📄 PDF erzeugen</div>
-
-    <div id="output">Bereit für Eingaben ...</div>
+    <button onclick="generierePDF()">📄 Etikett als PDF erzeugen</button>
+    <div id="output">Bereit …</div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const output = document.getElementById("output");
-    const grundSelect = document.getElementById("grund");
-    const zusatzfeld = document.getElementById("zusatzfeld");
-
-    grundSelect.addEventListener("change", () => {
-      zusatzfeld.classList.toggle("hidden", grundSelect.value !== "Sonstiges");
-    });
-
-    function sendeEintrag() {
-      const nve = document.getElementById("nve").value.trim();
-      const charge = document.getElementById("charge").value.trim();
-      const ursprung = document.getElementById("ursprung").value;
-      const grund = document.getElementById("grund").value;
-      const verwendung = document.getElementById("verwendung").value;
-      const sonst = document.getElementById("sonstiges").value.trim();
-
-      let eintrag = `[${new Date().toLocaleTimeString()}] NVE: ${nve}\nCharge: ${charge}\nUrsprung: ${ursprung}\nGrund: ${grund}`;
-      if (grund === "Sonstiges") eintrag += `\nZusatz: ${sonst}`;
-      eintrag += `\nVerwendung: ${verwendung}\n---`;
-
-      output.textContent += `\n${eintrag}`;
+    function toggleZusatz(val) {
+      document.getElementById('zusatzfeld').style.display = (val === 'Sonstiges') ? 'block' : 'none';
     }
 
-    async function generatePDF() {
+    function startScanner() {
+      const scanner = document.getElementById('scanner');
+      scanner.style.display = 'block';
+
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: scanner,
+          constraints: {
+            facingMode: "environment"
+          }
+        },
+        decoder: {
+          readers: ["code_128_reader"]
+        }
+      }, function(err) {
+        if (err) return console.error(err);
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function(result) {
+        const code = result.codeResult.code;
+        document.getElementById("nve").value = code;
+        document.getElementById("scanner").style.display = "none";
+        Quagga.stop();
+        log(`📷 NVE erkannt: ${code}`);
+      });
+    }
+
+    function log(text) {
+      const output = document.getElementById('output');
+      output.textContent += `\n[${new Date().toLocaleTimeString()}] ${text}`;
+    }
+
+    async function generierePDF() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFont('Courier');
+      const doc = new jsPDF({ format: "a6" });
+
+      const nve = document.getElementById("nve").value;
+      const charge = document.getElementById("charge").value;
+      const mhd = new Date();
+      mhd.setDate(mhd.getDate() + 7); // Beispiel: +7 Tage
+      const mhdString = mhd.toLocaleDateString("de-DE");
+
+      doc.setFont("Courier", "bold");
       doc.setFontSize(11);
-      doc.text("📄 R223-Terminal Einträge:\n\n" + output.textContent, 10, 20);
-      doc.save("r223_terminal_eintrag.pdf");
+      doc.text("RI/SN Hackfleisch gemischt 500g", 10, 20);
+      doc.setFont("Courier", "normal");
+      doc.text(`MHD: ${mhdString}`, 10, 30);
+      doc.text(`Charge: ${charge}`, 10, 37);
+      doc.text(`NVE: ${nve}`, 10, 44);
+
+      doc.setDrawColor(0);
+      doc.rect(10, 55, 40, 15); // Barcode-Platzhalter
+      doc.text("(Barcode)", 12, 64);
+
+      doc.save("RI_SN_Hackfleisch_Etikett.pdf");
+      log("📄 PDF gespeichert!");
     }
   </script>
 </body>
