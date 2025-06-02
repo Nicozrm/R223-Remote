@@ -1,173 +1,168 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>R223-Scanung</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R223 Remote Terminal</title>
+  <link rel="icon" href="icon.png" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f3f8f5;
-      margin: 0;
-      padding: 2rem;
-      color: #222;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      position: relative;
-    }
-    h1 {
-      text-align: center;
-      color: #006644;
-    }
-    .section {
-      margin-bottom: 2rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-weight: bold;
-    }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    .button-group {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    button {
-      padding: 0.75rem 2rem;
-      border: none;
-      border-radius: 10px;
-      background-color: #006644;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      flex: 1;
-    }
-    .camera-icon {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
+      background: #1c1c1c;
+      font-family: monospace;
+      color: #e0e0e0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 2rem;
     }
-    .camera-icon img {
-      width: 64px;
-      height: 64px;
-      object-fit: contain;
+
+    .terminal {
+      background: #2a2a2a;
+      width: 95%;
+      max-width: 800px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     }
-    .camera-icon small {
-      font-style: italic;
-      font-size: 0.75rem;
-    }
-    .footer-note {
-      margin-top: 3rem;
+
+    h1 {
+      color: #00ff88;
+      font-size: 2rem;
       text-align: center;
-      font-size: 0.7rem;
-      font-style: italic;
-      color: #888;
+      margin-bottom: 1.5rem;
     }
-    .fake-terminal {
+
+    label {
+      display: block;
+      margin: 1rem 0 0.2rem;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #3a3a3a;
+      color: #00ff88;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    .button {
+      background: #3a3a3a;
+      border: 1px solid #555;
+      color: #00ff88;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .button:hover {
+      background: #00ff88;
+      color: #000;
+    }
+
+    #output {
       background: #111;
       color: #0f0;
-      font-family: monospace;
-      font-size: 0.9rem;
       padding: 1rem;
-      border-radius: 10px;
-      height: 120px;
+      margin-top: 2rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      max-height: 200px;
       overflow-y: auto;
-      margin-bottom: 2rem;
+    }
+
+    .hidden {
       display: none;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>R223-Scanung</h1>
+  <div class="terminal">
+    <h1>R223 Terminal Interface</h1>
 
-    <div class="camera-icon">
-      <img src="https://img.icons8.com/ios-filled/100/camera.png" alt="Kamera">
-      <small>Rohwarenetikett scannen</small>
+    <label for="nve">📦 NVE</label>
+    <input type="text" id="nve" placeholder="34019..." />
+
+    <label for="charge">🧪 Charge</label>
+    <input type="text" id="charge" placeholder="z. B. WES0035..." />
+
+    <label for="ursprung">🌍 Ursprung</label>
+    <select id="ursprung">
+      <option>Retoure</option>
+      <option>Überhang</option>
+      <option>Sperrung QS</option>
+    </select>
+
+    <label for="grund">🧯 Grund</label>
+    <select id="grund">
+      <option>Fehletikettierung</option>
+      <option>Falscher Rohstoff</option>
+      <option>Falsche Chargendaten</option>
+      <option>Produktabweichung</option>
+      <option>Sonstiges</option>
+    </select>
+
+    <div id="zusatzfeld" class="hidden">
+      <label for="sonstiges">📝 Zusatz bei "Sonstiges"</label>
+      <textarea id="sonstiges" placeholder="Details eingeben ..."></textarea>
     </div>
 
-    <div class="section">
-      <label for="ursprung">Ursprung</label>
-      <select id="ursprung">
-        <option value="Retoure">Retoure</option>
-        <option value="Überhang">Überhang</option>
-        <option value="Sperrung QS">Sperrung QS</option>
-      </select>
+    <label for="verwendung">🎯 Verwendungszweck</label>
+    <select id="verwendung">
+      <option>Burgerrohstoff</option>
+      <option>RI-Zubereitung</option>
+      <option>Essenzzubereitung</option>
+      <option>Sonstiges</option>
+      <option>1 zu 1</option>
+    </select>
 
-      <label for="grund">Grund</label>
-      <select id="grund">
-        <option value="Fehletikettierung">Fehletikettierung</option>
-        <option value="Falscher Rohstoff">Falscher Rohstoff</option>
-        <option value="Falsche Chargendaten">Falsche Chargendaten</option>
-        <option value="Falsches Etikett">Falsches Etikett</option>
-        <option value="Produktabweichung">Produktabweichung</option>
-        <option value="Charge fehlerhaft">Charge fehlerhaft</option>
-      </select>
+    <div class="button" onclick="sendeEintrag()">✅ Eintrag bestätigen</div>
+    <div class="button" onclick="generatePDF()">📄 PDF erzeugen</div>
 
-      <label for="verwendungszweck">Verwendungszweck</label>
-      <select id="verwendungszweck" onchange="toggleSonstiges()">
-        <option value="Burgerrohstoff">Burgerrohstoff</option>
-        <option value="Burgerrohstoff International">Burgerrohstoff International</option>
-        <option value="SN Zubereitung">SN Zubereitung</option>
-        <option value="RI Zubereitung">RI Zubereitung</option>
-        <option value="SN/RI Zubereitung">SN/RI Zubereitung</option>
-        <option value="Konfiskat">Konfiskat</option>
-        <option value="1 zu 1">1 zu 1</option>
-        <option value="Sonstiges">Sonstiges</option>
-      </select>
-      <input type="text" id="sonstigesField" placeholder="Bitte Verwendungszweck angeben..." style="display:none;">
-    </div>
-
-    <button onclick="generateFakeTerminal()">Etikett generieren</button>
-
-    <div class="fake-terminal" id="terminalOutput">
-      <p>Initialisiere Drucksystem...</p>
-    </div>
-
-    <div class="button-group">
-      <button onclick="alert('Speichern folgt...')">Etikett speichern unter</button>
-      <button onclick="alert('Drucken folgt...')">Etikett drucken x3</button>
-    </div>
-
-    <div class="footer-note">© Westfalenland Fleischwaren GmbH – entwickelt von <i>Nico Zimmermann</i></div>
+    <div id="output">Bereit für Eingaben ...</div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    function toggleSonstiges() {
-      const verwendung = document.getElementById('verwendungszweck').value;
-      document.getElementById('sonstigesField').style.display = verwendung === 'Sonstiges' ? 'block' : 'none';
+    const output = document.getElementById("output");
+    const grundSelect = document.getElementById("grund");
+    const zusatzfeld = document.getElementById("zusatzfeld");
+
+    grundSelect.addEventListener("change", () => {
+      zusatzfeld.classList.toggle("hidden", grundSelect.value !== "Sonstiges");
+    });
+
+    function sendeEintrag() {
+      const nve = document.getElementById("nve").value.trim();
+      const charge = document.getElementById("charge").value.trim();
+      const ursprung = document.getElementById("ursprung").value;
+      const grund = document.getElementById("grund").value;
+      const verwendung = document.getElementById("verwendung").value;
+      const sonst = document.getElementById("sonstiges").value.trim();
+
+      let eintrag = `[${new Date().toLocaleTimeString()}] NVE: ${nve}\nCharge: ${charge}\nUrsprung: ${ursprung}\nGrund: ${grund}`;
+      if (grund === "Sonstiges") eintrag += `\nZusatz: ${sonst}`;
+      eintrag += `\nVerwendung: ${verwendung}\n---`;
+
+      output.textContent += `\n${eintrag}`;
     }
 
-    function generateFakeTerminal() {
-      const output = document.getElementById('terminalOutput');
-      output.style.display = 'block';
-      output.innerHTML = '<p>Initialisiere Drucksystem...</p>';
-      setTimeout(() => {
-        output.innerHTML += '<p>Verbindung zu Backend hergestellt...</p>';
-      }, 1000);
-      setTimeout(() => {
-        output.innerHTML += '<p>Daten aus IFIS abgerufen...</p>';
-      }, 2000);
-      setTimeout(() => {
-        output.innerHTML += '<p>Etikett erfolgreich generiert ✅</p>';
-      }, 4000);
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont('Courier');
+      doc.setFontSize(11);
+      doc.text("📄 R223-Terminal Einträge:\n\n" + output.textContent, 10, 20);
+      doc.save("r223_terminal_eintrag.pdf");
     }
   </script>
 </body>
