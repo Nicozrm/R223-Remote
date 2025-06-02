@@ -3,6 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R223 Terminal Start</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #00ff88;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background: #1c1c1c;
+      padding: 3rem;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .button {
+      display: block;
+      margin: 1rem auto;
+      padding: 1rem 2rem;
+      background: #222;
+      color: #00ff88;
+      border: 2px solid #00ff88;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 250px;
+    }
+
+    .button:hover {
+      background: #00ff88;
+      color: #111;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 R223 Remote Tool</h1>
+
+    <button class="button" onclick="window.location.href='etikett.html'">📦 Kartons scannen</button>
+    <button class="button" onclick="window.location.href='palette.html'">🧊 Paletten scannen</button>
+    <button class="button" onclick="window.close()">🚪 Programm beenden</button>
+
+    <div class="footer">von Nico Zimmermann 🛠️</div>
+  </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>R223 Label Tool</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
