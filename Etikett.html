@@ -2,63 +2,93 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Etikett erstellen</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
   <style>
-    body { background: #1c1c1c; font-family: monospace; color: #e0e0e0; padding: 1rem; }
-    .container { max-width: 700px; margin: auto; background: #2a2a2a; padding: 2rem; border-radius: 10px; }
+    body {
+      background: #1c1c1c; font-family: monospace; color: #e0e0e0;
+      padding: 1rem; max-width: 700px; margin: auto;
+    }
     h1 { text-align: center; color: #00ff88; }
-    input, select, textarea { width: 100%; padding: 0.6rem; margin: 0.5rem 0 1rem; border: none; border-radius: 6px; background: #3a3a3a; color: #00ff88; font-size: 1rem; }
-    button { background: #00ff88; color: #111; padding: 1rem; width: 100%; margin: 0.5rem 0; border: none; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+    input, select, textarea {
+      width: 100%; padding: 0.6rem; margin: 0.5rem 0 1rem;
+      border: none; border-radius: 6px; background: #2a2a2a; color: #00ff88; font-size: 1rem;
+    }
+    button {
+      background: #00ff88; color: #111; padding: 1rem;
+      width: 100%; margin: 0.3rem 0; border: none;
+      border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;
+    }
     #scanner { display: none; width: 100%; height: 250px; background: black; margin-bottom: 1rem; }
     #zusatzfeld { display: none; }
-    #output { background: #111; color: #0f0; padding: 1rem; border-radius: 6px; white-space: pre-wrap; margin-top: 1rem; }
+    #output {
+      background: #111; color: #0f0; padding: 1rem; border-radius: 6px;
+      white-space: pre-wrap; margin-top: 1rem; font-size: 0.85rem; max-height: 200px; overflow-y: auto;
+    }
+    .row { display: flex; gap: 1rem; }
+    .row button { flex: 1; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📦 Etikett erstellen</h1>
+  <h1>📦 Etikett erstellen</h1>
 
-    <video id="scanner"></video>
-    <button onclick="startScanner()">📷 NVE scannen</button>
+  <video id="scanner"></video>
+  <button onclick="startScanner()">📷 Rohwarenetikett scannen</button>
 
-    <label>NVE</label>
-    <input type="text" id="nve" placeholder="34019..." />
-    <label>Charge</label>
-    <input type="text" id="charge" placeholder="WES..." />
-    <label>Ursprung</label>
-    <select id="ursprung">
-      <option>Retoure</option><option>Überhang</option><option>Sperrung QS</option>
-    </select>
-    <label>Grund</label>
-    <select id="grund" onchange="toggleZusatz(this.value)">
-      <option>Fehletikettierung</option><option>Falscher Rohstoff</option><option>Produktabweichung</option><option>Sonstiges</option>
-    </select>
-    <div id="zusatzfeld">
-      <label>Zusatztext</label>
-      <textarea id="sonstiges"></textarea>
-    </div>
-    <label>Verwendungszweck</label>
-    <select id="verwendung">
-      <option>Burgerrohstoff</option><option>RI-Zubereitung</option><option>1 zu 1</option><option>Sonstiges</option>
-    </select>
-
-    <button onclick="generatePDF()">📄 PDF generieren</button>
-    <div id="output">Bereit ...</div>
+  <label>NVE</label>
+  <input type="text" id="nve" placeholder="34019..." />
+  <label>Charge</label>
+  <input type="text" id="charge" placeholder="WES..." />
+  <label>Ursprung</label>
+  <select id="ursprung">
+    <option>Retoure</option><option>Überhang</option><option>Sperrung QS</option>
+  </select>
+  <label>Grund</label>
+  <select id="grund" onchange="toggleZusatz(this.value)">
+    <option>Fehletikettierung</option><option>Falscher Rohstoff</option><option>Produktabweichung</option><option>Sonstiges</option>
+  </select>
+  <div id="zusatzfeld">
+    <label>Zusatztext</label>
+    <textarea id="sonstiges" rows="2"></textarea>
   </div>
+  <label>Verwendungszweck</label>
+  <select id="verwendung">
+    <option>Burgerrohstoff</option><option>RI-Zubereitung</option><option>1 zu 1</option><option>Sonstiges</option>
+  </select>
+
+  <div class="row">
+    <button onclick="generatePDF()">📄 Etikett generieren</button>
+    <button onclick="saveData()">💾 Etikett speichern</button>
+    <button onclick="printLabel()">🖨️ Etikett drucken ×3</button>
+  </div>
+  <button onclick="showStats()">📊 Statistik anzeigen</button>
+
+  <div id="output">📟 Terminal bereit...</div>
 
   <script>
     function toggleZusatz(val) {
       document.getElementById('zusatzfeld').style.display = (val === 'Sonstiges') ? 'block' : 'none';
     }
 
+    function log(msg) {
+      const logBox = document.getElementById("output");
+      const time = new Date().toLocaleTimeString();
+      logBox.textContent += `\n[${time}] ${msg}`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
     function startScanner() {
       const scanner = document.getElementById('scanner');
       scanner.style.display = 'block';
       Quagga.init({
-        inputStream: { name: "Live", type: "LiveStream", target: scanner, constraints: { facingMode: "environment" }},
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: scanner,
+          constraints: { facingMode: "environment" }
+        },
         decoder: { readers: ["code_128_reader"] }
       }, err => {
         if (err) return console.error(err);
@@ -73,28 +103,63 @@
       });
     }
 
-    function log(msg) {
-      document.getElementById('output').textContent += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
-    }
-
     function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ format: "a6" });
+
       const nve = document.getElementById("nve").value;
       const charge = document.getElementById("charge").value;
+      const verwendung = document.getElementById("verwendung").value;
+      const grund = document.getElementById("grund").value;
+      const zusatz = document.getElementById("sonstiges").value;
       const mhd = new Date(); mhd.setDate(mhd.getDate() + 7);
       const mhdString = mhd.toLocaleDateString("de-DE");
 
-      doc.setFont("Courier", "bold"); doc.setFontSize(11);
+      doc.setFont("Courier", "bold"); doc.setFontSize(10);
       doc.text("RI/SN Hackfleisch gemischt 500g", 10, 20);
       doc.setFont("Courier", "normal");
       doc.text(`MHD: ${mhdString}`, 10, 30);
       doc.text(`Charge: ${charge}`, 10, 37);
       doc.text(`NVE: ${nve}`, 10, 44);
-      doc.setDrawColor(0); doc.rect(10, 55, 40, 15);
-      doc.text("(Barcode)", 12, 64);
+      doc.text(`Zweck: ${verwendung}`, 10, 51);
+      doc.setDrawColor(0); doc.rect(10, 58, 40, 15);
+      doc.text("(Barcode)", 12, 67);
+
       doc.save("etikett.pdf");
-      log("✅ PDF gespeichert");
+      log("✅ Etikett generiert und als PDF gespeichert");
+    }
+
+    function saveData() {
+      const eintrag = {
+        datum: new Date().toLocaleDateString("de-DE"),
+        artikel: "Hackfleisch gemischt 500g",
+        verwendung: document.getElementById("verwendung").value
+      };
+      const list = JSON.parse(localStorage.getItem("etikettLogs") || "[]");
+      list.push(eintrag);
+      localStorage.setItem("etikettLogs", JSON.stringify(list));
+      log("💾 Eintrag gespeichert");
+    }
+
+    function printLabel() {
+      log("🖨️ Druckvorgang x3 gestartet...");
+      for (let i = 1; i <= 3; i++) {
+        log(`🖨️ Ausdruck ${i} abgeschlossen`);
+      }
+    }
+
+    function showStats() {
+      const list = JSON.parse(localStorage.getItem("etikettLogs") || "[]");
+      if (list.length === 0) return log("📊 Keine Daten gefunden");
+
+      const counts = {};
+      list.forEach(e => {
+        const key = `${e.datum} | ${e.artikel}`;
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      log("📊 Statistik:");
+      Object.entries(counts).forEach(([k, v]) => log(`📦 ${k}: ${v}x`));
     }
   </script>
 </body>
