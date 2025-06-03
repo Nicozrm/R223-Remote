@@ -4,33 +4,184 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Palettenetikett – R223</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
   <style>
     body {
       background: #1c1c1c;
       color: #00ff88;
       font-family: monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 2rem;
+    }
+    h1 {
       text-align: center;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      background: #2a2a2a;
+      border: none;
+      border-radius: 6px;
+      color: #00ff88;
     }
     button {
       background: #00ff88;
       color: #111;
-      padding: 1rem 2rem;
+      padding: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    #previewCanvas {
+      width: 100%;
+      max-width: 400px;
+      height: 200px;
+      border: 1px solid #00ff88;
+      margin: 1rem auto;
+      display: block;
+    }
+    #scanner {
+      display: none;
+      width: 100%;
+      height: 250px;
+      background: black;
+      margin-bottom: 1rem;
+    }
+    #statistik {
       margin-top: 2rem;
+      background: #2a2a2a;
+      padding: 1rem;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <h1>🧊 Palettenetikett</h1>
-  <p>Diese Seite ist aktuell noch im Aufbau, aber schon bald kannst du hier direkt Palettenetiketten scannen, generieren und verwalten.</p>
+
+  <video id="scanner"></video>
+  <button onclick="startScanner()">📷 NVE scannen</button>
+
+  <label>NVE</label>
+  <input type="text" id="nve" placeholder="34019...">
+  <label>Charge</label>
+  <input type="text" id="charge" placeholder="WES...">
+  <label>Artikelbezeichnung</label>
+  <input type="text" id="artikel" placeholder="z. B. Bio-Rinderhack 5kg">
+  <label>Anzahl Kartons</label>
+  <input type="number" id="kartons" placeholder="z. B. 42">
+
+  <canvas id="previewCanvas"></canvas>
+
+  <button onclick="generatePDF()">📄 PDF generieren</button>
+  <button onclick="exportCSV()">📂 CSV exportieren</button>
+  <button onclick="updateStats()">📊 Statistik anzeigen</button>
   <button onclick="window.location.href='index.html'">⬅️ Zurück zur Startseite</button>
+
+  <div id="statistik"></div>
+
+  <script>
+    function startScanner() {
+      const scanner = document.getElementById("scanner");
+      scanner.style.display = "block";
+      Quagga.init({
+        inputStream: { name: "Live", type: "LiveStream", target: scanner, constraints: { facingMode: "environment" } },
+        decoder: { readers: ["code_128_reader"] }
+      }, err => {
+        if (err) return console.error(err);
+        Quagga.start();
+      });
+      Quagga.onDetected(result => {
+        const code = result.codeResult.code;
+        document.getElementById("nve").value = code;
+        document.getElementById("scanner").style.display = "none";
+        Quagga.stop();
+        updatePreview();
+      });
+    }
+
+    function updatePreview() {
+      const ctx = document.getElementById("previewCanvas").getContext("2d");
+      ctx.clearRect(0, 0, 400, 200);
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(0, 0, 400, 200);
+      ctx.fillStyle = "#00ff88";
+      ctx.font = "bold 14px Courier";
+      ctx.fillText("Palettenetikett", 10, 25);
+      ctx.font = "12px Courier";
+      ctx.fillText("Artikel: " + document.getElementById("artikel").value, 10, 45);
+      ctx.fillText("Kartons: " + document.getElementById("kartons").value, 10, 60);
+      ctx.fillText("Charge: " + document.getElementById("charge").value, 10, 75);
+      ctx.fillText("NVE: " + document.getElementById("nve").value, 10, 90);
+      ctx.strokeStyle = "#00ff88";
+      ctx.strokeRect(300, 30, 80, 50);
+      ctx.fillText("(Barcode)", 310, 60);
+    }
+
+    setInterval(updatePreview, 1000);
+
+    function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const nve = document.getElementById("nve").value;
+      const charge = document.getElementById("charge").value;
+      const artikel = document.getElementById("artikel").value;
+      const kartons = document.getElementById("kartons").value;
+      doc.setFont("Courier", "bold");
+      doc.setFontSize(14);
+      doc.text("Palettenetikett", 20, 20);
+      doc.setFontSize(12);
+      doc.text("Artikel: " + artikel, 20, 30);
+      doc.text("Anzahl Kartons: " + kartons, 20, 40);
+      doc.text("Charge: " + charge, 20, 50);
+      doc.text("NVE: " + nve, 20, 60);
+      doc.text("(Barcode)", 20, 80);
+      doc.save("palette-etikett.pdf");
+
+      saveToLocalStorage(nve, charge, artikel, kartons);
+    }
+
+    function exportCSV() {
+      const data = JSON.parse(localStorage.getItem("etiketten") || "[]");
+      let csv = "NVE,Charge,Artikel,Kartons\n";
+      data.forEach(row => {
+        csv += `${row.nve},${row.charge},${row.artikel},${row.kartons}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.setAttribute("href", URL.createObjectURL(blob));
+      link.setAttribute("download", "palette.csv");
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function saveToLocalStorage(nve, charge, artikel, kartons) {
+      const data = JSON.parse(localStorage.getItem("etiketten") || "[]");
+      data.push({ nve, charge, artikel, kartons });
+      localStorage.setItem("etiketten", JSON.stringify(data));
+    }
+
+    function updateStats() {
+      const data = JSON.parse(localStorage.getItem("etiketten") || "[]");
+      const total = data.length;
+      const mengeGesamt = data.reduce((sum, e) => sum + parseInt(e.kartons || 0), 0);
+      const meist = data.reduce((acc, e) => {
+        acc[e.artikel] = (acc[e.artikel] || 0) + 1;
+        return acc;
+      }, {});
+      const meistGedruckt = Object.entries(meist).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+      document.getElementById("statistik").innerHTML = `
+        <h3>📊 Statistik</h3>
+        <p>Gesamtetiketten: <b>${total}</b></p>
+        <p>Gesamtmenge Kartons: <b>${mengeGesamt}</b></p>
+        <p>Meistgedruckter Artikel: <b>${meistGedruckt}</b></p>
+      `;
+    }
+  </script>
 </body>
 </html>
