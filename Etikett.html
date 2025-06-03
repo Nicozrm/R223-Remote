@@ -6,6 +6,37 @@
   <title>Etikett erstellen</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
+  function updatePreview() {
+  const ctx = document.getElementById("previewCanvas").getContext("2d");
+  ctx.clearRect(0, 0, 300, 150);
+
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(0, 0, 300, 150);
+
+  ctx.fillStyle = "#00ff88";
+  ctx.font = "bold 14px Courier";
+
+  const nve = document.getElementById("nve").value;
+  const charge = document.getElementById("charge").value;
+  const verwendung = document.getElementById("verwendung").value;
+  const mhd = new Date();
+  mhd.setDate(mhd.getDate() + 7);
+  const mhdString = mhd.toLocaleDateString("de-DE");
+
+  ctx.fillText("RI/SN Hackfleisch 500g", 10, 25);
+  ctx.font = "12px Courier";
+  ctx.fillText("MHD: " + mhdString, 10, 45);
+  ctx.fillText("Charge: " + charge, 10, 60);
+  ctx.fillText("NVE: " + nve, 10, 75);
+  ctx.fillText("Verwendung: " + verwendung, 10, 90);
+  ctx.strokeStyle = "#00ff88";
+  ctx.strokeRect(200, 20, 80, 50); // Barcode-Feld-Dummy
+  ctx.fillText("(Barcode)", 210, 50);
+}
+
+// ruft alle 1 Sekunde updatePreview() auf
+setInterval(updatePreview, 1000);
+
   <style>
     body {
       background: #1c1c1c; font-family: monospace; color: #e0e0e0;
