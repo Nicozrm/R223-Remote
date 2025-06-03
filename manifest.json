@@ -1,174 +1,21 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>R223-Scanung</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3f8f5;
-      margin: 0;
-      padding: 2rem;
-      color: #222;
+{
+  "name": "R223 Etiketten-Terminal",
+  "short_name": "R223",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#1c1c1c",
+  "theme_color": "#00ff88",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      position: relative;
-    }
-    h1 {
-      text-align: center;
-      color: #006644;
-    }
-    .section {
-      margin-bottom: 2rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-weight: bold;
-    }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    .button-group {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    button {
-      padding: 0.75rem 2rem;
-      border: none;
-      border-radius: 10px;
-      background-color: #006644;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      flex: 1;
-    }
-    .camera-icon {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .camera-icon img {
-      width: 64px;
-      height: 64px;
-      object-fit: contain;
-    }
-    .camera-icon small {
-      font-style: italic;
-      font-size: 0.75rem;
-    }
-    .footer-note {
-      margin-top: 3rem;
-      text-align: center;
-      font-size: 0.7rem;
-      font-style: italic;
-      color: #888;
-    }
-    .fake-terminal {
-      background: #111;
-      color: #0f0;
-      font-family: monospace;
-      font-size: 0.9rem;
-      padding: 1rem;
-      border-radius: 10px;
-      height: 120px;
-      overflow-y: auto;
-      margin-bottom: 2rem;
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>R223-Scanung</h1>
+  ]
+}
 
-    <div class="camera-icon">
-      <img src="https://img.icons8.com/ios-filled/100/camera.png" alt="Kamera">
-      <small>Rohwarenetikett scannen</small>
-    </div>
-
-    <div class="section">
-      <label for="ursprung">Ursprung</label>
-      <select id="ursprung">
-        <option value="Retoure">Retoure</option>
-        <option value="Überhang">Überhang</option>
-        <option value="Sperrung QS">Sperrung QS</option>
-      </select>
-
-      <label for="grund">Grund</label>
-      <select id="grund">
-        <option value="Fehletikettierung">Fehletikettierung</option>
-        <option value="Falscher Rohstoff">Falscher Rohstoff</option>
-        <option value="Falsche Chargendaten">Falsche Chargendaten</option>
-        <option value="Falsches Etikett">Falsches Etikett</option>
-        <option value="Produktabweichung">Produktabweichung</option>
-        <option value="Charge fehlerhaft">Charge fehlerhaft</option>
-      </select>
-
-      <label for="verwendungszweck">Verwendungszweck</label>
-      <select id="verwendungszweck" onchange="toggleSonstiges()">
-        <option value="Burgerrohstoff">Burgerrohstoff</option>
-        <option value="Burgerrohstoff International">Burgerrohstoff International</option>
-        <option value="SN Zubereitung">SN Zubereitung</option>
-        <option value="RI Zubereitung">RI Zubereitung</option>
-        <option value="SN/RI Zubereitung">SN/RI Zubereitung</option>
-        <option value="Konfiskat">Konfiskat</option>
-        <option value="1 zu 1">1 zu 1</option>
-        <option value="Sonstiges">Sonstiges</option>
-      </select>
-      <input type="text" id="sonstigesField" placeholder="Bitte Verwendungszweck angeben..." style="display:none;">
-    </div>
-
-    <button onclick="generateFakeTerminal()">Etikett generieren</button>
-
-    <div class="fake-terminal" id="terminalOutput">
-      <p>Initialisiere Drucksystem...</p>
-    </div>
-
-    <div class="button-group">
-      <button onclick="alert('Speichern folgt...')">Etikett speichern unter</button>
-      <button onclick="alert('Drucken folgt...')">Etikett drucken x3</button>
-    </div>
-
-    <div class="footer-note">© Westfalenland Fleischwaren GmbH – entwickelt von <i>Nico Zimmermann</i></div>
-  </div>
-
-  <script>
-    function toggleSonstiges() {
-      const verwendung = document.getElementById('verwendungszweck').value;
-      document.getElementById('sonstigesField').style.display = verwendung === 'Sonstiges' ? 'block' : 'none';
-    }
-
-    function generateFakeTerminal() {
-      const output = document.getElementById('terminalOutput');
-      output.style.display = 'block';
-      output.innerHTML = '<p>Initialisiere Drucksystem...</p>';
-      setTimeout(() => {
-        output.innerHTML += '<p>Verbindung zu Backend hergestellt...</p>';
-      }, 1000);
-      setTimeout(() => {
-        output.innerHTML += '<p>Daten aus IFIS abgerufen...</p>';
-      }, 2000);
-      setTimeout(() => {
-        output.innerHTML += '<p>Etikett erfolgreich generiert ✅</p>';
-      }, 4000);
-    }
-  </script>
-</body>
-</html>
