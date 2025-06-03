@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R223 Etikettentool</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #101010;
+      color: #eee;
+    }
 
+    header {
+      padding: 1rem;
+      background: #00ff88;
+      color: black;
+      font-weight: bold;
+      font-size: 1.4rem;
+    }
+
+    .clock {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: #0f0;
+    }
+
+    .container {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    button {
+      padding: 10px 16px;
+      background: #00ff88;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    #console {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      white-space: pre-line;
+      min-height: 120px;
+    }
+
+    .button-bar {
+      margin-top: 1rem;
+    }
+  </style>
+
+  <!-- Scripts (modular geladen) -->
+  <script defer src="js/auto_charge_generator.js"></script>
+  <script defer src="js/live_clock.js"></script>
+  <script defer src="js/fake_terminal.js"></script>
+  <script defer src="js/superuser_easter_egg.js"></script>
+  <script defer src="js/localstorage_save_last_scan.js"></script>
+  <script defer src="js/charge_vorschlag_per_nve.js"></script>
+  <script defer src="js/tara_calculator.js"></script>
+  <script defer src="js/live_preview.js"></script>
+  <script defer src="js/buttons_core_block.js"></script>
+  <script defer src="js/buttons_terminal_zpl_history.js"></script>
+  <script defer src="js/history_table.js"></script>
+  <script defer src="js/zpl_generator.js"></script>
+  <script defer src="js/pwa_installer.js"></script>
+  <script defer src="js/etikett_generieren_komplett.js"></script>
+</head>
+<body>
+  <header>🌱 R223 Etikettentool – GitHub Version</header>
+  <div class="clock" id="clock"></div>
+
+  <div class="container">
+    <p>Nutze dieses Tool zum Erstellen, Testen und Speichern von R223-Retourenetiketten.</p>
+
+    <div class="button-bar">
+      <button onclick="generateAutoCharge()">🔁 Auto-Charge erzeugen</button>
+      <button onclick="showLastScan()">📜 Letzten Scan anzeigen</button>
+      <button onclick="activateSuperuser()">🧑‍🚀 Superuser aktivieren</button>
+      <button onclick="fakeTerminalOutput([
+        '[System] → Initialisiere Druckprozess...',
+        '[Parser] → Barcode wird generiert...',
+        '[ZPL] → ZPL-Code erstellt.',
+        '[Done] → Druck simuliert.'
+      ])">🧠 Fake-Terminal abspielen</button>
+      <button onclick="showHistory()">📊 Scan-Historie anzeigen</button>
+      <button onclick="downloadZPL()">📤 ZPL-Datei herunterladen</button>
+      <button onclick="installPWA()">📲 App installieren</button>
+    </div>
+
+    <div id="console">🧠 Konsole bereit...</div>
+  </div>
+</body>
+</html>
