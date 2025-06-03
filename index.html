@@ -77,5 +77,33 @@
       }
     }
   </script>
-</body>
+</body> <script>
+  let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Optional: Eigener Installieren-Button anzeigen
+    const installBtn = document.createElement("button");
+    installBtn.textContent = "📲 App installieren";
+    installBtn.style = "position:fixed; bottom:1rem; right:1rem; z-index:9999; background:#00ff88; color:#000; border:none; padding:1rem; border-radius:8px; font-weight:bold; cursor:pointer;";
+    document.body.appendChild(installBtn);
+
+    installBtn.addEventListener("click", () => {
+      installBtn.remove();
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(choiceResult => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("✅ App installiert");
+        } else {
+          console.log("❌ App-Installation abgelehnt");
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+</script>
+
+
 </html>
