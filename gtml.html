@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel – GTML</title>
+  <style>
+    body {
+      background: #1c1c1c; font-family: monospace; color: #00ff88;
+      padding: 2rem; max-width: 800px; margin: auto;
+    }
+    h1 { text-align: center; margin-bottom: 2rem; }
+    .info-box {
+      background: #111; padding: 1rem; margin: 1rem 0;
+      border-left: 4px solid #00ff88; border-radius: 6px;
+    }
+    button {
+      background: #00ff88; color: #111; border: none; font-weight: bold;
+      padding: 0.8rem 1.2rem; border-radius: 6px; margin-top: 1rem; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ GTML Admin-Konsole</h1>
+
+  <div class="info-box" id="userInfo">
+    🔍 Lade Benutzerdaten ...
+  </div>
+
+  <div class="info-box" id="systemInfo">
+    🖥️ Systeminformationen werden abgerufen ...
+  </div>
+
+  <button onclick="resetLog()">🧹 Lokale Daten löschen</button>
+
+  <script>
+    function loadUserData() {
+      const user = localStorage.getItem("r223_user") || "– nicht angemeldet –";
+      const login = localStorage.getItem("r223_login_time") || "– unbekannt –";
+      document.getElementById("userInfo").innerHTML = `
+        👤 Angemeldeter Nutzer: <strong>${user}</strong><br>
+        🕒 Letzter Login: ${login}
+      `;
+    }
+
+    function loadSystemInfo() {
+      const ipPlaceholder = "📡 Lokale IP wird im Backend oder über WebRTC ermittelt (nicht direkt im Frontend möglich)";
+      const userAgent = navigator.userAgent;
+      document.getElementById("systemInfo").innerHTML = `
+        🌐 User Agent:<br><code>${userAgent}</code><br><br>
+        🌍 IP-Adresse:<br><code>${ipPlaceholder}</code>
+      `;
+    }
+
+    function resetLog() {
+      localStorage.removeItem("r223_user");
+      localStorage.removeItem("r223_login_time");
+      localStorage.removeItem("etikettLogs");
+      alert("🧹 Alle lokalen Daten wurden gelöscht.");
+      loadUserData();
+    }
+
+    // Bei Login automatisch Zeit speichern (nur 1x)
+    if (!localStorage.getItem("r223_login_time")) {
+      const now = new Date().toLocaleString("de-DE");
+      localStorage.setItem("r223_login_time", now);
+    }
+
+    loadUserData();
+    loadSystemInfo();
+  </script>
+</body>
+</html>
