@@ -2,106 +2,137 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>R223 Etikettentool</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Etikettentool Ultra Deluxe</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: #101010;
-      color: #eee;
-    }
-
-    header {
-      padding: 1rem;
-      background: #00ff88;
-      color: black;
-      font-weight: bold;
-      font-size: 1.4rem;
-    }
-
-    .clock {
-      position: fixed;
-      top: 10px;
-      right: 20px;
-      font-weight: bold;
-      font-size: 1rem;
-      color: #0f0;
-    }
-
-    .container {
-      padding: 2rem;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    button {
-      padding: 10px 16px;
-      background: #00ff88;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-
-    #console {
-      background: #000;
-      color: #0f0;
-      font-family: monospace;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-      white-space: pre-line;
-      min-height: 120px;
-    }
-
-    .button-bar {
-      margin-top: 1rem;
-    }
+    body { font-family: sans-serif; background: #111; color: #eee; margin: 0; padding: 0; }
+    header, footer { background: #00ff88; color: #000; text-align: center; padding: 1rem; font-weight: bold; }
+    .container { padding: 1rem; }
+    .login-screen, .main-app { display: none; }
+    .visible { display: block; }
+    .section { background: #1c1c1c; margin-bottom: 1rem; padding: 1rem; border-radius: 8px; }
+    input, select, button { margin: 0.5rem 0; padding: 0.5rem; width: 100%; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 8px; border: 1px solid #444; }
+    canvas { background: #fff; border-radius: 4px; }
   </style>
-
-  <!-- Scripts (modular geladen) -->
-  <script defer src="js/auto_charge_generator.js"></script>
-  <script defer src="js/live_clock.js"></script>
-  <script defer src="/fake_terminal.js"></script>
-  <script defer src="js/superuser_easter_egg.js"></script>
-  <script defer src="js/localstorage_save_last_scan.js"></script>
-  <script defer src="js/charge_vorschlag_per_nve.js"></script>
-  <script defer src="js/tara_calculator.js"></script>
-  <script defer src="js/live_preview.js"></script>
-  <script defer src="js/buttons_core_block.js"></script>
-  <script defer src="js/buttons_terminal_zpl_history.js"></script>
-  <script defer src="js/history_table.js"></script>
-  <script defer src="js/zpl_generator.js"></script>
-  <script defer src="js/pwa_installer.js"></script>
-  <script defer src="js/etikett_generieren_komplett.js"></script>
 </head>
 <body>
-  <header>🌱 R223 Etikettentool – GitHub Version</header>
-  <div class="clock" id="clock"></div>
+  <header>ðŸ“¦ R223 Ultra Deluxe Etikettentool</header>
 
-  <div class="container">
-    <p>Nutze dieses Tool zum Erstellen, Testen und Speichern von R223-Retourenetiketten.</p>
-
-    <div class="button-bar">
-      <button onclick="generateAutoCharge()">🔁 Auto-Charge erzeugen</button>
-      <button onclick="showLastScan()">📜 Letzten Scan anzeigen</button>
-      <button onclick="activateSuperuser()">🧑‍🚀 Superuser aktivieren</button>
-      <button onclick="fakeTerminalOutput([
-        '[System] → Initialisiere Druckprozess...',
-        '[Parser] → Barcode wird generiert...',
-        '[ZPL] → ZPL-Code erstellt.',
-        '[Done] → Druck simuliert.'
-      ])">🧠 Fake-Terminal abspielen</button>
-      <button onclick="showHistory()">📊 Scan-Historie anzeigen</button>
-      <button onclick="downloadZPL()">📤 ZPL-Datei herunterladen</button>
-      <button onclick="installPWA()">📲 App installieren</button>
+  <div class="login-screen visible" id="loginScreen">
+    <div class="container">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Benutzername"/>
+      <input type="password" id="password" placeholder="Passwort"/>
+      <button onclick="login()">Login</button>
     </div>
-
-    <div id="console">🧠 Konsole bereit...</div>
   </div>
+
+  <div class="main-app" id="mainApp">
+    <div class="container">
+      <div class="section">
+        <h2>ðŸ“‹ Etikettendaten</h2>
+        <input id="artikel" placeholder="Artikelbezeichnung"/>
+        <input id="nve" placeholder="NVE"/>
+        <input id="charge" placeholder="Charge"/>
+        <input id="gewicht" type="number" placeholder="Gesamtgewicht"/>
+        <select id="verwendung">
+          <option value="Burgerrohstoff">Burgerrohstoff</option>
+          <option value="1 zu 1">1 zu 1</option>
+          <option value="Essenz">Essenz</option>
+          <option value="Sonstiges">Sonstiges</option>
+        </select>
+        <button onclick="generateEtikett()">Etikett generieren</button>
+      </div>
+
+      <div class="section">
+        <h2>ðŸ“œ Historie</h2>
+        <table>
+          <thead><tr><th>Zeit</th><th>Artikel</th><th>Charge</th><th>NVE</th><th>Aktion</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>ðŸ“· Scanner</h2>
+        <video id="preview" width="100%" height="240"></video>
+        <button onclick="startScanner()">Scanner starten</button>
+      </div>
+
+      <div class="section">
+        <h2>ðŸ“Š Statistik</h2>
+        <canvas id="chart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <footer>Â© 2025 R223 Etikettentool â€“ Entwickelt von Nico</footer>
+
+  <script>
+    const users = {
+      "admin": { pw: "admin123", role: "admin" },
+      "produktion": { pw: "prod123", role: "prod" },
+      "qs": { pw: "qs123", role: "qs" }
+    };
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pw = document.getElementById("password").value;
+      if (users[user] && users[user].pw === pw) {
+        document.getElementById("loginScreen").classList.remove("visible");
+        document.getElementById("mainApp").classList.add("visible");
+      } else {
+        alert("Falsche Zugangsdaten!");
+      }
+    }
+
+    function generateEtikett() {
+      const artikel = document.getElementById("artikel").value;
+      const charge = document.getElementById("charge").value;
+      const nve = document.getElementById("nve").value;
+      const gewicht = document.getElementById("gewicht").value;
+      const verwendung = document.getElementById("verwendung").value;
+      const time = new Date().toLocaleString();
+      const row = `<tr><td>${time}</td><td>${artikel}</td><td>${charge}</td><td>${nve}</td><td>Generiert</td></tr>`;
+      document.getElementById("historyBody").innerHTML += row;
+    }
+
+    function startScanner() {
+      Quagga.init({
+        inputStream: { type: "LiveStream", target: document.querySelector('#preview') },
+        decoder: { readers: ["ean_reader"] }
+      }, function(err) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        Quagga.start();
+        Quagga.onDetected(function(result) {
+          document.getElementById("nve").value = result.codeResult.code;
+          Quagga.stop();
+        });
+      });
+    }
+
+    window.onload = function () {
+      const ctx = document.getElementById('chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Mo', 'Di', 'Mi', 'Do', 'Fr'],
+          datasets: [{
+            label: 'Etiketten / Tag',
+            data: [12, 19, 3, 5, 2],
+            backgroundColor: 'lime'
+          }]
+        }
+      });
+    }
+  </script>
 </body>
 </html>
