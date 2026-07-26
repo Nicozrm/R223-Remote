@@ -1885,6 +1885,7 @@ function askVault(){
       inp.value = '';
       d.classList.remove('on'); overlayState();
       renderProviders(); fillModels(); syncUI();
+      modelleAuffrischen();          // die Schlüssel gab es vorher noch nicht
     }catch(e){
       err.textContent = 'Passphrase stimmt nicht.';
     }finally{ $('#lockGo').disabled = false; }
@@ -3220,6 +3221,21 @@ async function continueAnswer(){
   persist(); scrollDown(true);
   await run();
 }
+/* Für den Titel genügt das kleinste Modell. Hier stand fest gpt-5.6-luna –
+   hat das Konto genau das nicht, blieb jeder Chat stumm „Neuer Chat“. Also
+   das kleinste aus der Liste, die das Konto tatsächlich hergibt. */
+function titelModell(){
+  const da = extraModels.openai || [];
+  if(!da.length) return 'gpt-5.6-luna';
+  const klein = da.find(id => /luna|mini|nano|lite/.test(id));
+  if(klein) return klein;
+  /* Kein kleines dabei: dann das eingestellte. Es kostet ohnehin schon, und
+     einen Titel heimlich am teuersten Flaggschiff zu berechnen wäre eine
+     Überraschung auf der Rechnung. */
+  if(provOf(S.model) === 'openai' && da.includes(S.model)) return S.model;
+  return da[0];
+}
+
 async function autoTitle(){
   if(!keyFor('openai') || !cur || cur.titled) return;
   const first = cur.msgs.find(m => m.role === 'user');
@@ -3230,7 +3246,7 @@ async function autoTitle(){
     const r = await fetch('https://api.openai.com/v1/responses', {
       method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + keyFor('openai')},
       body:JSON.stringify({
-        model:'gpt-5.6-luna', reasoning:{effort:'none'}, store:false, max_output_tokens:64,
+        model:titelModell(), reasoning:{effort:'none'}, store:false, max_output_tokens:64,
         instructions:'Finde einen Titel mit höchstens fünf Wörtern für dieses Gespräch. Nur den Titel, ohne Anführungszeichen und ohne Punkt.',
         input:[{role:'user', content:[{type:'input_text', text:(first.content || '').slice(0, 600) + '\n\n' + (ans.content || '').slice(0, 600)}]}]
       })
@@ -3319,20 +3335,59 @@ function fillVoices(){
   sel.value = S.voice;
 }
 let extraModels = JSON.parse(localStorage.getItem('nm.extraModels') || '{}');
+let modelsAt = JSON.parse(localStorage.getItem('nm.modelsAt') || '{}');   // wann zuletzt geholt
+
+/* Alphabetisch stünde gpt-4o über gpt-5.6 – die Auswahl fängt dann mit den
+   ältesten Modellen an. Also nach Familie und Nummer, das Neuere oben. */
+function modelRang(id){
+  const g = /^(?:chat)?gpt-(\d+(?:\.\d+)?)/.exec(id);
+  if(g) return 1000 - parseFloat(g[1]) * 10;
+  const o = /^o(\d+)/.exec(id);
+  if(o) return 2000 - parseInt(o[1], 10);
+  return 3000;
+}
+const sortModels = ids => ids.slice().sort((a, b) =>
+  modelRang(a) - modelRang(b) || a.localeCompare(b, 'de', {numeric:true}));
+
 function fillModels(extra, prov){
-  if(extra && prov){ extraModels[prov] = extra; localStorage.setItem('nm.extraModels', JSON.stringify(extraModels)); }
+  if(extra && prov){
+    extraModels[prov] = extra;
+    modelsAt[prov] = Date.now();
+    try{
+      localStorage.setItem('nm.extraModels', JSON.stringify(extraModels));
+      localStorage.setItem('nm.modelsAt', JSON.stringify(modelsAt));
+    }catch(e){ speicherVoll(e); }
+  }
   const sel = $('#modelSel'); sel.innerHTML = '';
   const known = MODELS.map(m => m.id);
   Object.keys(PROVIDERS).forEach(p => {
     const g = document.createElement('optgroup');
-    g.label = PROVIDERS[p].name + ' · ' + PROVIDERS[p].short + (keyFor(p) ? '' : '  (kein Schlüssel)');
+    const dazu = sortModels((extraModels[p] || []).filter(id => !known.includes(id)));
+    g.label = PROVIDERS[p].name + ' · ' + PROVIDERS[p].short
+      + (keyFor(p) ? (dazu.length ? '  (' + (dazu.length + MODELS.filter(m => m.p === p).length) + ' Modelle)' : '') : '  (kein Schlüssel)');
     MODELS.filter(m => m.p === p).forEach(m =>
       g.appendChild(new Option(m.name + '   $' + m.i + ' / $' + m.o + ' je Mio.', m.id)));
-    (extraModels[p] || []).filter(id => !known.includes(id)).forEach(id => g.appendChild(new Option(id, id)));
+    dazu.forEach(id => g.appendChild(new Option(id, id)));
     if(g.children.length) sel.add(g);
   });
   if(!Array.from(sel.querySelectorAll('option')).some(o => o.value === S.model)) sel.add(new Option(S.model, S.model));
   sel.value = S.model;
+  Object.keys(PROVIDERS).forEach(p => {
+    const z = $('#mc_' + p);
+    if(z) z.textContent = (extraModels[p] || []).length ? (extraModels[p] || []).length + ' Modelle aus dem Konto' : '';
+  });
+}
+
+/* Die Auswahl soll von Anfang an alles enthalten, was das Konto hergibt –
+   nicht erst, nachdem jemand in den Einstellungen „Modelle laden“ gefunden
+   hat. Einmal am Tag genügt; die Liste ändert sich selten. */
+const MODELL_FRISCH = 24 * 3600 * 1000;
+function modelleAuffrischen(){
+  Object.keys(PROVIDERS).forEach(p => {
+    if(!keyFor(p)) return;
+    if((extraModels[p] || []).length && Date.now() - (modelsAt[p] || 0) < MODELL_FRISCH) return;
+    pullModels(p, true);
+  });
 }
 function syncUI(){
   $('#modelLabel').textContent = S.model;
@@ -3382,6 +3437,8 @@ function renderProviders(){
       + '<span class="tag' + (keyFor(p) ? ' ok' : '') + '">' + (keyFor(p) ? 'bereit' : 'offen') + '</span></div>'
       + '<input class="inp" type="password" id="key_' + p + '" placeholder="' + esc(P.keyHint) + '" autocomplete="off" spellcheck="false">'
       + '<div class="hint kf" id="kf_' + p + '">' + keyMark(keyFor(p)) + '</div>'
+      + '<div class="hint kf" id="mc_' + p + '">'
+      + ((extraModels[p] || []).length ? (extraModels[p] || []).length + ' Modelle aus dem Konto' : '') + '</div>'
       + '<div class="mcp-actions"><button class="btn sm" id="chk_' + p + '">Prüfen</button>'
       + '<button class="btn sm" id="pull_' + p + '">Modelle laden</button></div>';
     box.appendChild(d);
@@ -3690,8 +3747,16 @@ async function pullModels(p, quiet){
     if(p === 'google') ids = (j.models || []).map(m => String(m.name).replace(/^models\//, ''))
                                              .filter(id => /gemini/.test(id) && !/embedding|aqa|tts|image/.test(id));
     else ids = (j.data || []).map(m => m.id);
-    if(p === 'openai') ids = ids.filter(id => /^(gpt|o[0-9])/.test(id) && !/(audio|realtime|image|tts|transcribe|embedding|moderation)/.test(id));
-    ids.sort();
+    if(p === 'openai'){
+      /* Vorher fielen chatgpt-… und die o-Reihe teils heraus. Jetzt bleibt
+         alles stehen, was im Chat auch wirklich antworten kann; draußen
+         bleiben nur die anderen Gattungen – Ton, Bild, Einbettungen,
+         Moderation – und die reinen Vervollständiger (-instruct), die die
+         Responses-Schnittstelle gar nicht bedient. */
+      ids = ids.filter(id => /^(gpt|chatgpt|o\d)/.test(id)
+        && !/(audio|realtime|tts|transcribe|whisper|embedding|moderation|image|dall-e|sora|instruct)/.test(id));
+    }
+    ids = sortModels(Array.from(new Set(ids)));
     fillModels(ids, p);
     /* Steht ein Modell eingestellt, das dieses Projekt gar nicht kennt,
        sofort sagen – nicht erst beim Senden. */
@@ -3917,6 +3982,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   if(S.tilt) addEventListener('pointerdown', function once(){ removeEventListener('pointerdown', once); setTilt(true); }, {once:true});
   if(hasVault() && !vaultOpen){ setTimeout(askVault, 250); return; }
   if(!Object.values(S.keys).some(Boolean)) setTimeout(() => { openSheet(); const f = $('#key_openai'); if(f) f.focus(); }, 400);
+  else setTimeout(modelleAuffrischen, 600);   // erst starten lassen, dann nachladen
 })();
 </script>
 </body>
