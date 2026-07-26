@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>NOBLEmind</title>
-<meta name="description" content="Lokaler, installierbarer Client für die OpenAI-API.">
+<meta name="description" content="Installierbarer Client für OpenAI, Claude, Gemini, Kimi und Grok — Schlüssel und Chats bleiben auf dem Gerät.">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -91,8 +91,14 @@ button{cursor:pointer}
 /* Die Ecken laufen auf echtes Schwarz aus – dort bleiben die OLED-Pixel aus. */
 #vig{position:fixed;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(146% 108% at 50% 46%,transparent 46%,rgba(0,0,0,.42) 78%,rgba(0,0,0,.86) 100%)}
-#grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* Korn als gekachelte Grafik statt SVG-Turbulenz. feTurbulence rendert in
+   WebKit anders als in Chromium – dort wurde daraus eine flächige Aufhellung
+   über den ganzen Schirm. Genau das war das Grau auf dem iPhone, das meine
+   Messung im Chromium nie sehen konnte. Eine Kachel sieht überall gleich aus. */
+#grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.020;
+  background-image:url("data:image/png;base64,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");
+  background-size:64px 64px;background-repeat:repeat}
+html[data-grain="0"] #grain{display:none}
 
 /* ════════════════════ Flüssigglas ════════════════════
    Eine Scheibe von hinten nach vorn:
@@ -197,6 +203,10 @@ html.refract .lx.c{-webkit-backdrop-filter:blur(10px) brightness(1.92) url(#lgEd
   mix-blend-mode:screen;animation:lume 26s var(--ease) infinite alternate}
 @keyframes lume{to{background-position:0 0,-30% 0,60% 40%,30% 40%,22% 14%,74% 22%,34% 82%}}
 .glass>*:not(.lx){position:relative;z-index:5}
+/* Der bewegte Lichtschein lief auf JEDER Scheibe – bei zweihundert Antworten
+   also zweihundert Dauer-Animationen gleichzeitig. Auf dem Gerüst ist er
+   sichtbar, in einer Antwortfläche verschenkt er nur Akkulaufzeit. */
+.msg .body::after,.bubble::after,.dcard::after{animation:none;background:none;opacity:0}
 
 /* Druck: das Glas gibt kurz nach, die Kante wird dicker. */
 .glass.press{transform:scale(.994)}
@@ -261,8 +271,9 @@ html.refract .lx.c{-webkit-backdrop-filter:blur(10px) brightness(1.92) url(#lgEd
 #scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
 #thread{max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:26px;
   padding:calc(var(--barh,60px) + 30px) 22px calc(var(--dockh,132px) + 30px)}
-.msg{display:flex;flex-direction:column;gap:8px;animation:rise .5s var(--ease) both}
+.msg{display:flex;flex-direction:column;gap:8px;animation:rise .42s var(--ease) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#thread.bulk .msg{animation:none}
 .msg.u{align-items:flex-end}
 /* Sprechblasen sind dünneres Glas: gleiche Sprache, weniger Gewicht –
    und ohne Ringstapel, damit das Scrollen flüssig bleibt. */
@@ -744,6 +755,34 @@ body{font-size:14.5px}
   .msg.a .body{padding:var(--s3)}
 }
 
+
+/* ── Nachbesserungen aus dem Geräte-Test ────────────────────────── */
+
+/* Die Vorschläge im Leerzustand verschwanden hinter dem Verfasser. */
+#hero{padding:22vh var(--gut) calc(var(--dockh,120px) + var(--s6))}
+
+/* Die Werkzeugzeile lief über den Rand und wurde mitten im Chip abgeschnitten.
+   Sie rollt weiterhin, blendet aber sauber aus, statt zu zerschneiden. */
+#tools{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  mask:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+  -webkit-mask:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}
+#tools::-webkit-scrollbar{display:none}
+#tools .chip{flex:none}
+
+/* Die Streifen sollen Strahlen sein, keine Flecken: flacher, breiter,
+   weniger Unschärfe im Verhältnis zur Höhe. */
+#aurora{filter:blur(16px) saturate(170%)}
+#aurora i{height:10px !important;width:190%;left:-45%}
+#aurora i:nth-child(1){top:26px}
+#aurora i:nth-child(2){top:58px}
+#aurora i:nth-child(3){top:96px}
+#aurora i:nth-child(4){top:42px;height:4px !important}
+
+/* Das Zahnrad stand halb am Rand. */
+#bar{padding-inline:var(--gut)}
+.emblem{margin:0}
+
 /* ── Bedienelemente aus demselben Material ──
    Kleine Flächen bekommen eine dünne Scheibe und eine helle Oberkante,
    damit sie im Glas liegen statt darauf zu kleben. */
@@ -873,6 +912,15 @@ pre.raw{font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre-
   margin-top:10px;padding:14px;border-radius:var(--r3);background:rgba(0,0,0,.5);color:var(--ink2)}
 
 .mcp-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* Eine Antwortfläche ohne Inhalt ist kein Gestaltungselement, sondern ein
+   Rest. Kam nichts an, ist auch nichts zu zeigen. */
+.msg.a .body:empty{display:none}
+/* Nachrichten außerhalb des Sichtfelds werden nicht mehr durchgerechnet.
+   Der Platzhalterwert verhindert, dass die Bildlaufleiste dabei springt. */
+.msg{content-visibility:auto;contain-intrinsic-size:auto 190px}
+.msg.a.failed .body{display:none}
+.kf{font-family:var(--mono);font-size:11px;margin-top:4px;opacity:.75}
+.err{white-space:pre-wrap}
 .mcp.on{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
 .mcp .inp{margin-top:2px}
 
@@ -1021,6 +1069,7 @@ html.noref .lx.c{-webkit-backdrop-filter:blur(30px) brightness(1.96) contrast(1.
       <h3>Modell</h3>
       <div class="fld">
         <label for="modelSel">Aktives Modell</label>
+        <div class="err" id="modelWarn" hidden></div>
         <select class="inp" id="modelSel"></select>
       </div>
       <div class="fld">
@@ -1123,6 +1172,7 @@ html.noref .lx.c{-webkit-backdrop-filter:blur(30px) brightness(1.96) contrast(1.
         </select>
         <div class="hint">Bestimmt Dicke und Farbigkeit der Glaskante. Auf älteren Geräten eine Stufe zurücknehmen.</div>
       </div>
+      <div class="row"><div><div class="t">Filmkorn</div><div class="s">Eine feine Körnung über allem. Aus heißt: absolut reines Schwarz.</div></div><button class="sw on" id="swGrain" role="switch"></button></div>
       <div class="row"><div><div class="t">Lichtbrechung</div><div class="s">Verzerrt den Hintergrund wirklich, statt ihn nur zu verwischen. Safari auf dem iPhone kann das nicht — dort arbeitet die Kante allein.</div></div><button class="sw on" id="swRefract" role="switch"></button></div>
       <div class="row"><div><div class="t">Neigungslicht</div><div class="s">Das Glanzlicht folgt der Neigung des Geräts statt dem Zeiger.</div></div><button class="sw" id="swTilt" role="switch"></button></div>
       <div class="row"><div><div class="t">Lichtfeld</div><div class="s">Bewegte Farbquellen hinter dem Glas.</div></div><button class="sw on" id="swAurora" role="switch"></button></div>
@@ -1259,7 +1309,10 @@ const MODELS = [
 ];
 const provOf = id => (MODELS.find(m => m.id === id) || {p:'openai'}).p;
 const keyFor = p => (S.keys && S.keys[p]) || '';
-const priceOf = id => MODELS.find(m => m.id === id) || {i:2.5, o:15, ctx:400000};
+/* Für Modelle, die aus dem Konto nachgeladen wurden, kennt die App keinen
+   Preis. Vorher wurde stillschweigend 2,50/15 unterstellt – der Zähler zeigte
+   dann eine erfundene Zahl, die nach Messung aussah. Lieber gar keine. */
+const priceOf = id => MODELS.find(m => m.id === id) || {i:0, o:0, ctx:400000, unbekannt:true};
 const VOICES = ['marin','cedar','alloy','ash','ballad','coral','echo','fable','nova','onyx','sage','shimmer','verse'];
 const TTS_MODEL = 'gpt-4o-mini-tts';
 const EFFORT_DE = {none:'keine', low:'niedrig', medium:'mittel', high:'hoch', xhigh:'sehr hoch', max:'maximal'};
@@ -1302,7 +1355,7 @@ const MCP_PRESETS = [
 const DEF = {
   key:'', keys:{openai:'', anthropic:'', google:'', moonshot:'', xai:''}, agents:[], agent:'', model:'gpt-5.6-sol', effort:'medium', verbosity:'medium', think:true,
   sys:'', web:true, mcps:[], refract:true, aurora:true, tilt:false, glass:3,
-  img:false, imgSize:'auto', imgQual:'auto', voice:'marin', voiceIns:'',
+  grain:true, img:false, imgSize:'auto', imgQual:'auto', voice:'marin', voiceIns:'',
   usage:{in:0, out:0, cost:0}
 };
 let S = Object.assign({}, DEF);
@@ -1312,14 +1365,29 @@ S.keys = Object.assign({openai:'', anthropic:'', google:'', moonshot:'', xai:''}
 if(S.key && !S.keys.openai) S.keys.openai = S.key;      // aus der Fassung mit nur einem Anbieter
 S.agents = Array.isArray(S.agents) ? S.agents : [];
 S.usage = S.usage || {in:0, out:0, cost:0};
+let speicherGemeldet = false;
+/* Bilder liegen als Base64 im Chat – der Platz ist schneller voll, als man
+   denkt. Vorher ist das Schreiben still fehlgeschlagen und der Verlauf war
+   beim nächsten Start unvollständig, ohne dass irgendwo etwas stand. */
+function speicherVoll(e){
+  if(speicherGemeldet) return;
+  speicherGemeldet = true;
+  const voll = /quota|exceed/i.test(e && (e.name + ' ' + e.message));
+  toast(voll ? 'Speicher voll — neue Nachrichten werden nicht mehr gesichert. Chats exportieren und alte löschen.'
+             : 'Sichern fehlgeschlagen: ' + ((e && e.message) || 'unbekannt'),
+        'Einstellungen', () => openSheet());
+  setTimeout(() => { speicherGemeldet = false; }, 60000);
+}
 const save = () => {
   /* Steht der Tresor, wird die Schlüsselablage beim Speichern geleert –
      sonst läge daneben weiterhin der Klartext. */
   if(localStorage.getItem('nm.vault')){
     const {keys, key, ...rest} = S;
-    localStorage.setItem('nm.settings', JSON.stringify(Object.assign(rest, {keys:{}, key:''})));
+    try{ localStorage.setItem('nm.settings', JSON.stringify(Object.assign(rest, {keys:{}, key:''}))); }
+    catch(e){ speicherVoll(e); }
   } else {
-    localStorage.setItem('nm.settings', JSON.stringify(S));
+    try{ localStorage.setItem('nm.settings', JSON.stringify(S)); }
+    catch(e){ speicherVoll(e); }
   }
 };
 
@@ -1331,7 +1399,10 @@ let attachments = [];    // [{kind:'image'|'file',name,dataUrl}]
 /* ═══════════════════ Speicher (IndexedDB) ═══════════════════ */
 const LS = {                       // Notlösung, wenn IndexedDB gesperrt ist (z. B. Datei direkt geöffnet)
   read(){ try{ return JSON.parse(localStorage.getItem('nm.chats') || '[]'); }catch(e){ return []; } },
-  write(a){ try{ localStorage.setItem('nm.chats', JSON.stringify(a)); }catch(e){} },
+  write(a){
+    try{ localStorage.setItem('nm.chats', JSON.stringify(a)); }
+    catch(e){ speicherVoll(e); }          // vorher wurde der Fehler verschluckt
+  },
   all(){ return Promise.resolve(this.read()); },
   put(c){ const a = this.read().filter(x => x.id !== c.id); a.push(JSON.parse(JSON.stringify(c))); this.write(a); return Promise.resolve(); },
   del(id){ this.write(this.read().filter(x => x.id !== id)); return Promise.resolve(); },
@@ -1541,7 +1612,10 @@ function msgNode(m){
     paintSteps(n, m.steps);
     paintSrcs(n, m.sources);
     paintGen(n, m);
-    if(m.error) n.insertAdjacentHTML('beforeend', '<div class="err">' + esc(m.error) + '</div>');
+    if(m.error){
+      if(!(m.content || '').trim()) n.classList.add('failed');
+      n.insertAdjacentHTML('beforeend', '<div class="err">' + esc(m.error) + '</div>');
+    }
     n.querySelector('[data-a="copy"]').onclick = () => { navigator.clipboard.writeText(m.content || '').then(() => toast('Kopiert')); };
     n.querySelector('[data-a="retry"]').onclick = () => retryFrom(m.id);
     n.querySelector('[data-a="second"]').onclick = () => secondOpinion(m.id);
@@ -1666,8 +1740,13 @@ async function speak(m, btn){
 function renderThread(){
   const th = $('#thread'); th.innerHTML = '';
   if(!cur || !cur.msgs.length){ th.innerHTML = HERO; bindSeeds(); return; }
+  /* Beim Aufbauen eines vorhandenen Verlaufs bleibt die Einblendung aus:
+     ein alter Chat wird geöffnet, nicht geschrieben. Sonst laufen bei
+     zweihundert Nachrichten zweihundert Animationen gleichzeitig an. */
+  th.classList.add('bulk');
   cur.msgs.forEach(m => th.appendChild(msgNode(m)));
   scrollDown(true);
+  requestAnimationFrame(() => requestAnimationFrame(() => th.classList.remove('bulk')));
 }
 function bindSeeds(){
   $$('.seed').forEach(b => b.onclick = () => { $('#input').value = b.textContent + ' '; autosize(); $('#input').focus(); });
@@ -1693,8 +1772,10 @@ function openChat(id){
 }
 function updMeter(){
   const u = (cur && cur.usage) || {in:0, out:0, cost:0};
-  $('#meter').textContent = u.in + u.out ? nfmt(u.in + u.out) + ' Tokens · $' + u.cost.toFixed(4) : '';
-  $('#usageTxt').textContent = 'Insgesamt ' + nfmt(S.usage.in + S.usage.out) + ' Tokens · $' + S.usage.cost.toFixed(3);
+  const teil = u.teilweise ? '+' : '';       // + heißt: unvollständig, ein Modell ohne Preis war dabei
+  $('#meter').textContent = u.in + u.out ? nfmt(u.in + u.out) + ' Tok · $' + u.cost.toFixed(4) + teil : '';
+  $('#usageTxt').textContent = 'Insgesamt ' + nfmt(S.usage.in + S.usage.out) + ' Tokens · $'
+    + S.usage.cost.toFixed(3) + (S.usage.teilweise ? ' — ohne die Modelle, für die kein Preis hinterlegt ist' : '');
 }
 
 /* ═══════════════════ Anfrage bauen ═══════════════════ */
@@ -2919,12 +3000,29 @@ async function run(){
     stat.classList.add('live');
   }, 250);
   $('#dock').classList.add('busy');
-  const repaint = (now) => {
-    const t = Date.now();
-    if(!now && t - paintT < 55) return;
-    paintT = t;
+  /* Jeder Zeichen-Happen ließ den ganzen bisherigen Text neu durch den
+     Markdown-Satz und danach neu in den Baum. Bei einer langen Antwort ist
+     das hundertfache Arbeit an derselben Stelle. Zwei Bremsen:
+     – gezeichnet wird im Bildtakt, nicht im Netztakt (mehrere Happen
+       innerhalb eines Bildes werden zu einem Strich zusammengefasst),
+     – und je länger der Text, desto größer der Abstand: bei zwanzig Seiten
+       liest ohnehin niemand mit, das Nachziehen kostet dann nur Akku. */
+  let paintRaf = 0;
+  const paintNow = () => {
+    paintRaf = 0; paintT = Date.now();
     bodyEl.innerHTML = md(raw) + (busy ? '<span class="cursor"></span>' : '');
     scrollDown();
+  };
+  const repaint = (now) => {
+    if(now){
+      if(paintRaf){ cancelAnimationFrame(paintRaf); paintRaf = 0; }
+      paintNow();
+      return;
+    }
+    if(paintRaf) return;
+    const takt = raw.length > 12000 ? 220 : raw.length > 4000 ? 110 : 55;
+    if(Date.now() - paintT < takt) return;
+    paintRaf = requestAnimationFrame(paintNow);
   };
 
   const handle = ev => {
@@ -3014,7 +3112,6 @@ async function run(){
     clearInterval(tick);
     am.dur = (Date.now() - t0) / 1000;
     stat.classList.remove('live');
-    stat.textContent = fmtDur(am.dur) + (cur.usage && am.tok ? ' · ' + nfmt(am.tok) + ' Tokens' : '');
     $('#dock').classList.remove('busy');
     setBusy(false); abort = null;
     am.content = raw;
@@ -3029,9 +3126,15 @@ async function run(){
         + ' „Web“ und „Bild“ aus, falls das Modell diese Werkzeuge nicht kennt.';
     }
     if(am.error){
+      if(!raw.trim() && !am.image) node.classList.add('failed');
       node.querySelectorAll('.err').forEach(x => x.remove());
       node.insertAdjacentHTML('beforeend', '<div class="err">' + esc(am.error) + '</div>');
     }
+    /* Bei einem Fehlschlag ist die Dauer irreführend – sie liest sich wie
+       ein Erfolg. Drei leere Kästen mit „1,7 s“ waren genau das. */
+    stat.textContent = am.error && !raw.trim()
+      ? 'fehlgeschlagen'
+      : fmtDur(am.dur) + (cur.usage && am.tok ? ' · ' + nfmt(am.tok) + ' Tokens' : '');
     repaint(true);
     paintSteps(node, am.steps);
     if(am.truncated && !node.querySelector('.cont')){
@@ -3047,6 +3150,18 @@ async function run(){
 
 function friendly(e){
   const m = e.message || String(e);
+  /* „does not have access to model“ verwirrt zuverlässig: die genannte
+     Projekt-Kennung ist die des Schlüssels, nicht die des Modells. Wer
+     mehrere Schlüssel hat, sieht hier ein Projekt, an das er nicht denkt. */
+  const proj = /Project `?([A-Za-z0-9_\-]+)`? does not have access to model `?([^`'"\s]+)/i.exec(m);
+  if(proj){
+    return 'Das Projekt ' + proj[1] + ' darf das Modell ' + proj[2] + ' nicht benutzen.\n\n'
+      + 'Diese Projektkennung gehört zu dem Schlüssel, der gerade eingetragen ist — nicht zum Modell. '
+      + 'Steht dort ein anderes Projekt als erwartet, liegt im Browser noch ein älterer Schlüssel.\n\n'
+      + 'Prüfen: Einstellungen → Zugang → Kennung des Schlüssels vergleichen, dann „Modelle laden“. '
+      + 'Die Liste zeigt genau die Modelle, die dieses Projekt freigeschaltet hat. '
+      + 'Konto-weite Freischaltung reicht nicht; jedes Projekt hat unter Limits eine eigene Modellliste.';
+  }
   if(e.status === 401) return 'Der API-Schlüssel wurde abgelehnt. Prüfe ihn in den Einstellungen.';
   if(e.status === 429) return 'Zu viele Anfragen oder Guthaben aufgebraucht: ' + m;
   if(/image_generation/i.test(m)) return 'Dieses Modell kann das Bildwerkzeug nicht nutzen. Wähle ein anderes Modell oder schalte den Chip „Bild“ aus. (' + m + ')';
@@ -3060,6 +3175,7 @@ function addUsage(u, mdl){
   const cost = (i / 1e6) * p.i + (o / 1e6) * p.o;
   cur.usage.in += i; cur.usage.out += o; cur.usage.cost += cost;
   S.usage.in += i; S.usage.out += o; S.usage.cost += cost;
+  if(p.unbekannt) cur.usage.teilweise = S.usage.teilweise = true;
   save(); updMeter();
 }
 function setBusy(v){
@@ -3241,9 +3357,19 @@ function syncUI(){
   document.documentElement.classList.toggle('refract', !!S.refract && supportsRefraction);
   document.documentElement.classList.toggle('noref', !(S.refract && supportsRefraction));
   document.documentElement.dataset.glass = String(S.glass || 3);
+  document.documentElement.dataset.grain = S.grain === false ? '0' : '1';
+  $('#swGrain').classList.toggle('on', S.grain !== false);
   $('#glassSel').value = String(S.glass || 3);
   $('#aurora').style.display = S.aurora ? '' : 'none';
   updMeter();
+}
+/* Schlüssel stehen in einem Kennwortfeld – man sieht nicht, welcher drin ist.
+   Anfang und Ende genügen, um zwei Schlüssel auseinanderzuhalten, ohne den
+   Schlüssel preiszugeben. */
+function keyMark(k){
+  if(!k) return 'kein Schlüssel eingetragen';
+  if(k.length < 14) return 'eingetragen (auffällig kurz)';
+  return 'eingetragen · ' + k.slice(0, 8) + '…' + k.slice(-4) + ' · ' + k.length + ' Zeichen';
 }
 function renderProviders(){
   const box = $('#provList'); box.innerHTML = '';
@@ -3255,12 +3381,22 @@ function renderProviders(){
       + '<s>' + esc(P.keyUrl) + '</s></div>'
       + '<span class="tag' + (keyFor(p) ? ' ok' : '') + '">' + (keyFor(p) ? 'bereit' : 'offen') + '</span></div>'
       + '<input class="inp" type="password" id="key_' + p + '" placeholder="' + esc(P.keyHint) + '" autocomplete="off" spellcheck="false">'
+      + '<div class="hint kf" id="kf_' + p + '">' + keyMark(keyFor(p)) + '</div>'
       + '<div class="mcp-actions"><button class="btn sm" id="chk_' + p + '">Prüfen</button>'
       + '<button class="btn sm" id="pull_' + p + '">Modelle laden</button></div>';
     box.appendChild(d);
     const inp = d.querySelector('#key_' + p);
     inp.value = S.keys[p] || '';
-    inp.oninput = e => { S.keys[p] = e.target.value.trim(); save(); vaultResync(); fillModels(); syncUI(); };
+    let t0 = null;
+    inp.oninput = e => {
+      S.keys[p] = e.target.value.trim();
+      d.querySelector('#kf_' + p).textContent = keyMark(S.keys[p]);
+      save(); vaultResync(); fillModels(); syncUI();
+      /* Sobald ein Schlüssel vollständig aussieht, die echte Modellliste
+         holen. Das erspart die Runde „senden – Fehler – rätseln“. */
+      clearTimeout(t0);
+      if(S.keys[p].length > 20) t0 = setTimeout(() => pullModels(p, true), 900);
+    };
     d.querySelector('#chk_' + p).onclick = () => checkKey(p);
     d.querySelector('#pull_' + p).onclick = () => pullModels(p);
   });
@@ -3505,6 +3641,7 @@ $('#agentSave').onclick = () => {
   save(); renderAgents(); toast('Agent angelegt: ' + n);
 };
 $('#swAurora').onclick = () => { S.aurora = !S.aurora; save(); syncUI(); };
+$('#swGrain').onclick = () => { S.grain = !S.grain; save(); syncUI(); };
 $('#glassSel').onchange = e => { S.glass = +e.target.value; save(); syncUI(); };
 $('#swTilt').onclick = async () => {
   const want = !S.tilt;
@@ -3523,6 +3660,16 @@ async function checkKey(p){
     toast(PROVIDERS[p].name + ': keine Verbindung — Netz weg oder Anfragen aus dem Browser gesperrt');
   }finally{ btn.textContent = 'Prüfen'; btn.disabled = false; }
 }
+function warnModel(alt, ersatz, n){
+  const box = $('#modelWarn');
+  if(!box) return;
+  box.hidden = false;
+  box.innerHTML = '<b>' + esc(alt) + '</b> steht in der Liste dieses Kontos nicht — '
+    + 'gesendet würde es abgelehnt. Das Konto kennt ' + n + ' Modelle.'
+    + (ersatz ? ' <button class="btn sm" id="mwFix">Auf ' + esc(ersatz) + ' umstellen</button>' : '');
+  const f = $('#mwFix');
+  if(f) f.onclick = () => { S.model = ersatz; save(); fillModels(); syncUI(); box.hidden = true; toast('Modell: ' + ersatz); };
+}
 function listUrl(p){
   return p === 'google' ? PROVIDERS[p].list + '?key=' + encodeURIComponent(keyFor(p)) : PROVIDERS[p].list;
 }
@@ -3531,9 +3678,10 @@ function listHeaders(p){
   if(p === 'google') return {};
   return {Authorization:'Bearer ' + keyFor(p)};
 }
-async function pullModels(p){
+async function pullModels(p, quiet){
   if(!keyFor(p)){ toast('Für ' + PROVIDERS[p].name + ' ist kein Schlüssel eingetragen'); return; }
-  const btn = $('#pull_' + p); btn.textContent = 'lade …'; btn.disabled = true;
+  const btn = $('#pull_' + p);
+  if(btn){ btn.textContent = 'lade …'; btn.disabled = true; }
   try{
     const r = await fetch(listUrl(p), {headers:listHeaders(p)});
     const j = await r.json();
@@ -3545,9 +3693,17 @@ async function pullModels(p){
     if(p === 'openai') ids = ids.filter(id => /^(gpt|o[0-9])/.test(id) && !/(audio|realtime|image|tts|transcribe|embedding|moderation)/.test(id));
     ids.sort();
     fillModels(ids, p);
-    toast(PROVIDERS[p].name + ': ' + ids.length + ' Modelle geladen');
-  }catch(e){ toast(e.message || 'Fehler'); }
-  finally{ btn.textContent = 'Modelle laden'; btn.disabled = false; }
+    /* Steht ein Modell eingestellt, das dieses Projekt gar nicht kennt,
+       sofort sagen – nicht erst beim Senden. */
+    const eigene = MODELS.filter(m => m.p === p).map(m => m.id);
+    if(provOf(S.model) === p && !ids.includes(S.model)){
+      const ersatz = ids.find(id => eigene.includes(id)) || ids[0];
+      warnModel(S.model, ersatz, ids.length);
+    } else if(!quiet){
+      toast(PROVIDERS[p].name + ': ' + ids.length + ' Modelle geladen');
+    }
+  }catch(e){ if(!quiet) toast(e.message || 'Fehler'); }
+  finally{ if(btn){ btn.textContent = 'Modelle laden'; btn.disabled = false; } }
 }
 
 $('#mcpAdd').onclick = () => {
@@ -3726,6 +3882,14 @@ $('#installBtn').onclick = async () => {
 addEventListener('appinstalled', () => { $('#installBtn').style.display = 'none'; toast('Installiert'); });
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  /* Der neue Arbeiter übernimmt sofort, die offene Seite bleibt aber die alte.
+     Von selbst neu laden wäre übergriffig – mitten in einer Antwort verlöre
+     man den Faden. Also nur ein Hinweis, das Neuladen entscheidet der Nutzer. */
+  let hatteArbeiter = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(!hatteArbeiter){ hatteArbeiter = true; return; }   // erste Installation, keine Meldung
+    toast('Eine neuere Fassung liegt bereit.', 'Neu laden', () => location.reload());
+  });
 }
 
 /* Start */
@@ -3739,7 +3903,15 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   syncUI();
   try{ chats = (await IDB.all()) || []; }
   catch(e){ store = LS; chats = LS.read(); }   // Datei-Modus: IndexedDB gesperrt
-  if(chats.length){ chats.sort((a, b) => b.updated - a.updated); openChat(chats[0].id); }
+  /* Die Verknüpfung „Neuer Chat“ im Manifest ruft ./?new=1 auf. Bisher hörte
+     niemand darauf – man landete im zuletzt geöffneten Verlauf. */
+  let frisch = false;
+  try{ frisch = new URLSearchParams(location.search).get('new') === '1'; }catch(e){}
+  if(frisch){
+    newChat();
+    history.replaceState(null, '', location.pathname + location.hash);   // sonst bei jedem Neuladen wieder leer
+  }
+  else if(chats.length){ chats.sort((a, b) => b.updated - a.updated); openChat(chats[0].id); }
   else newChat();
   autosize();
   if(S.tilt) addEventListener('pointerdown', function once(){ removeEventListener('pointerdown', once); setTilt(true); }, {once:true});
