@@ -1885,7 +1885,14 @@ function bodyOpenAI(upto, withSummary, mdl){
 async function streamOpenAI(body, onEvent, signal){
   await sse('https://api.openai.com/v1/responses',
     {'Content-Type':'application/json', Authorization:'Bearer ' + keyFor('openai')},
-    body, signal, d => { try{ onEvent(JSON.parse(d)); }catch(e){} });
+    body, signal, d => {
+      /* Nur die Zeile selbst absichern. Früher lag auch onEvent im try –
+         dadurch verschwand der Fehler, den der Ereignis-Handler bei
+         'error' und 'response.failed' wirft, spurlos: keine Antwort,
+         aber auch keine Meldung. Die anderen Anbieter machen es so. */
+      let e; try{ e = JSON.parse(d); }catch(err){ return; }
+      onEvent(e);
+    });
 }
 
 /* ── Anthropic · Messages ───────────────────────────────────────── */
@@ -2902,7 +2909,7 @@ async function run(){
   setBusy(true);
 
   abort = new AbortController();
-  let raw = '', paintT = 0;
+  let raw = '', paintT = 0, aborted = false;
   const t0 = Date.now();
   const stat = node.querySelector('.stat');
   const tick = setInterval(() => {
@@ -2998,11 +3005,10 @@ async function run(){
     }
   }catch(e){
     if(e.name === 'AbortError'){
+      aborted = true;
       am.content = raw + (raw ? '\n\n_Abgebrochen._' : '_Abgebrochen._');
     } else {
-      am.error = friendly(e);
-      node.querySelectorAll('.err').forEach(x => x.remove());
-      node.insertAdjacentHTML('beforeend', '<div class="err">' + esc(am.error) + '</div>');
+      am.error = friendly(e);   /* angezeigt wird er unten, an einer Stelle */
     }
   }finally{
     clearInterval(tick);
@@ -3012,6 +3018,20 @@ async function run(){
     $('#dock').classList.remove('busy');
     setBusy(false); abort = null;
     am.content = raw;
+    /* Ein Durchlauf ohne Text, ohne Bild und ohne Fehler ist kein Erfolg,
+       sondern eine stille Niederlage – etwa wenn die Antwort gar kein
+       Ereignisstrom war oder der Anbieter den Inhalt zurückhielt. Eine
+       leere Blase lässt den Nutzer im Dunkeln, also wird es benannt. */
+    if(!am.error && !aborted && !raw && !am.image){
+      am.error = 'Der Anbieter hat die Anfrage angenommen, aber keinen Text geliefert'
+        + (am.think ? ' — nur eine Denkspur.' : '.')
+        + ' Versuche es erneut, wähle ein anderes Modell, oder schalte die Chips'
+        + ' „Web“ und „Bild“ aus, falls das Modell diese Werkzeuge nicht kennt.';
+    }
+    if(am.error){
+      node.querySelectorAll('.err').forEach(x => x.remove());
+      node.insertAdjacentHTML('beforeend', '<div class="err">' + esc(am.error) + '</div>');
+    }
     repaint(true);
     paintSteps(node, am.steps);
     if(am.truncated && !node.querySelector('.cont')){
