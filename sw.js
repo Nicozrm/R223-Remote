@@ -1,5 +1,5 @@
 /* NOBLEmind – Offline-Hülle. Cacht nur die App, niemals API-Verkehr. */
-const CACHE = 'noblemind-v6';
+const CACHE = 'noblemind-v7';
 const SHELL = [
   './',
   './index.html',
