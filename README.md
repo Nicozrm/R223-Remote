@@ -1,68 +1,35 @@
-# 📦 R223-Remote
+# NOBLEmind
 
-Ein vollständig interaktives Webtool für das Retourenmanagement, mit dem du mobil oder am PC **Etiketten scannen**, **bearbeiten**, **als PDF generieren** und direkt als App auf dem Homescreen installieren kannst.  
-Entwickelt von 🧠 Nico Zimmermann, für den produktiven Einsatz an echten SATO-Druckern & NVE-Barcodes.
+Installierbarer Web-Client für OpenAI, Claude, Gemini, Kimi und Grok.
+API-Schlüssel und Chats bleiben auf dem Gerät — es gibt kein Backend.
 
----
+**Live:** https://nicozrm.github.io/R223-Remote/
 
-## 🚀 Features
+## Aufbau
 
-- 📷 **NVE-Kamera-Scan** (Code128, z. B. 34019...)
-- 🧪 **Eingabe von Charge, Ursprung, Grund & Verwendungszweck**
-- 📄 **PDF-Erzeugung im originalen Etikett-Stil**
-- 📲 **PWA-fähig** → auf Handy installierbar
-- 🌑 Darkmode / Terminal UI / Neongrün-Vibes
-- 🔧 Zwei Tools: `etikett.html` (Kartons), `palette.html` (Paletten)
+| Datei | Zweck |
+| --- | --- |
+| `index.html` | Die komplette App — Markup, Styles und Logik in einer Datei |
+| `sw.js` | Service Worker, cacht nur die App-Hülle (nie API-Verkehr) |
+| `manifest.webmanifest` | PWA-Manifest für Installation auf Home-Bildschirm/Desktop |
+| `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | App-Icons |
+| `entitlements-BUClQUJs.js` | ES-Modul mit Tarif-/Tageszeit-Logik (siehe Hinweis unten) |
+| `.nojekyll` | Schaltet die Jekyll-Verarbeitung auf GitHub Pages ab |
 
----
+## Installation auf dem Gerät
 
-## 📁 Seitenstruktur
+1. Seite in Chrome oder Safari öffnen
+2. Menü → „Zum Home-Bildschirm hinzufügen“ bzw. Installations-Symbol in der Adressleiste
+3. Die App startet danach eigenständig und funktioniert offline
 
-| Datei           | Funktion                         |
-|----------------|----------------------------------|
-| `index.html`   | Startseite mit Navigation        |
-| `etikett.html` | Haupttool für Kartonetiketten    |
-| `palette.html` | Optional: Palettenerweiterung    |
-| `manifest.json`| Für PWA / App-Installation       |
-| `icon.png`     | App-Icon (für Homescreen etc.)   |
+## Hinweis zu `entitlements-BUClQUJs.js`
 
----
+Die Datei ist ein Build-Chunk aus einem anderen Projekt und wird von
+`index.html` nicht eingebunden. Sie importiert `./index-BAl3cIIH.js`, das hier
+nicht vorhanden ist — für sich allein ist sie daher nicht lauffähig. Sie liegt
+unverändert im Repo, damit nichts verloren geht.
 
-## ⚙️ Anwendung
+## Veröffentlichung
 
-1. **Repo öffnen:**  
-   [https://nicozrm.github.io/R223-Remote](https://nicozrm.github.io/R223-Remote)
-
-2. **Tool auswählen:**
-   - 📦 [Etikett scannen](https://nicozrm.github.io/R223-Remote/etikett.html)
-   - 🧊 [Paletten scannen](https://nicozrm.github.io/R223-Remote/palette.html)
-
-3. **PDF erzeugen:**  
-   → Wird automatisch mit Charge, NVE & MHD generiert (A6 Format)  
-   → Ideal für Druck über SATO-Etikettendrucker
-
-4. **Installieren auf dem Handy:**
-   - Öffne im Chrome/Safari
-   - Menü → „Zum Home-Bildschirm hinzufügen“
-   - Voilà, die App ist da
-
----
-
-## 🛠️ To-Do / Erweiterungen (optional)
-
-- 🖨️ Druckintegration über Netzwerkdrucker (SATO)
-- ☁️ Datenbank-Anbindung für Rückverfolgung
-- 🔐 Login-System mit Benutzerrollen
-- 📂 Etikett-Archiv mit Verlaufsfunktion
-
----
-
-## 🧠 Entwickler
-
-**Nico Zimmermann**  
-R223 | Retouren- & Etikettenlösung für die Fleischindustrie  
-💬 Fragen, Anregungen, Bugs → DM oder Fork gern gesehen.
-
----
-
-> Made with 💡, Kaffee ☕ und jsPDF 📄
+GitHub Pages liefert den Inhalt des Repository-Roots des Standard-Branches aus.
+Jeder Merge nach `main` aktualisiert die Live-Seite automatisch.
