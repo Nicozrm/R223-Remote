@@ -1,14 +1,18 @@
 {
+  "id": "./",
   "name": "NOBLEmind",
   "short_name": "NOBLEmind",
   "description": "Client für OpenAI, Claude, Gemini, Kimi und Grok — Schlüssel und Chats bleiben auf dem Gerät.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "launch_handler": { "client_mode": "navigate-existing" },
   "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#000000",
   "lang": "de",
+  "dir": "ltr",
   "categories": ["productivity", "utilities"],
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
@@ -17,6 +21,11 @@
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Neuer Chat", "url": "./?new=1" }
+    {
+      "name": "Neuer Chat",
+      "short_name": "Neuer Chat",
+      "url": "./?new=1",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }
